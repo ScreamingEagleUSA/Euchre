@@ -11,47 +11,41 @@ export function useGameLoop() {
     useEffect(() => {
         if (!roomId || !playerId) return;
 
-        const poll = async () => {
+        const fetchState = async () => {
             try {
-                const res = await fetch(`/.netlify/functions/room-state?roomId=${roomId}&playerId=${playerId}&clientVersion=${versionRef.current}`);
-                if (!res.ok) throw new Error('Failed to fetch state');
-
-                const data = await res.json();
-                if (!data.noChange) {
-                    setGameState(data);
-                    versionRef.current = data.version;
+                const res = await fetch(`/.netlify/functions/game?action=state&roomId=${roomId}&playerId=${playerId}&version=${gameState?.version || 0}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (!data.noChange) {
+                        setGameState(data);
+                    }
                 }
-            } catch (err) {
-                console.error('Polling error:', err);
-                // Don't set global error on polling failure to avoid UI flicker, just retry
+            } catch (e) {
+                console.error("Polling error", e);
             }
         };
 
-        const interval = setInterval(poll, POLLING_INTERVAL);
-        poll(); // Initial call
+        const interval = setInterval(fetchState, POLLING_INTERVAL);
+        fetchState(); // Initial fetch
 
         return () => clearInterval(interval);
-    }, [roomId, playerId, setGameState]);
+    }, [roomId, playerId, gameState?.version, setGameState]);
 
     const performAction = async (action: Action) => {
         if (!roomId || !playerId) return;
-
         try {
-            // Optimistic update? Maybe too risky for complex game state.
-            // Just send and wait for next poll or response.
-
-            const res = await fetch('/.netlify/functions/perform-action', {
+            const res = await fetch('/.netlify/functions/game?action=perform', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ roomId, playerId, action }),
             });
 
-            if (!res.ok) throw new Error('Action failed');
-
-            const data = await res.json();
-            if (data.newState) {
-                setGameState(data.newState);
-                versionRef.current = data.newState.version;
+            if (res.ok) {
+                const newState = await res.json();
+                setGameState(newState);
+                versionRef.current = newState.version;
+            } else {
+                const err = await res.text();
+                setError(err);
             }
         } catch (err) {
             console.error('Action error:', err);

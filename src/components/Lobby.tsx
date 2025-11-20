@@ -19,7 +19,7 @@ export function Lobby() {
 
     const createRoom = async () => {
         try {
-            const res = await fetch('/.netlify/functions/create-room', { method: 'POST' });
+            const res = await fetch('/.netlify/functions/game?action=create', { method: 'POST' });
             const data = await res.json();
             setRoomId(data.roomId);
             window.location.hash = `room=${data.roomId}`;
@@ -34,7 +34,7 @@ export function Lobby() {
         if (!targetRoomId) return;
 
         try {
-            const res = await fetch('/.netlify/functions/join-room', {
+            const res = await fetch('/.netlify/functions/game?action=join', {
                 method: 'POST',
                 body: JSON.stringify({ roomId: targetRoomId, nickname }),
             });
