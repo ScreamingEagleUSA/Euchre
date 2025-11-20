@@ -4,7 +4,7 @@ import { useGameLoop } from '../hooks/useGameLoop';
 import { Copy, User, Users } from 'lucide-react';
 
 export function Lobby() {
-    const { roomId, playerId, gameState, setRoomId, setPlayerId, setGameState, setError } = useGameStore();
+    const { roomId, playerId, gameState, error, setRoomId, setPlayerId, setGameState, setError } = useGameStore();
     const { performAction } = useGameLoop();
     const [nickname, setNickname] = useState('');
     const [joinRoomId, setJoinRoomId] = useState('');
@@ -65,6 +65,12 @@ export function Lobby() {
             <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/80 text-white p-8">
                 <div className="bg-slate-800 p-8 rounded-xl shadow-2xl max-w-md w-full">
                     <h2 className="text-3xl font-bold mb-6 text-center">Lobby</h2>
+
+                    {error && (
+                        <div className="bg-red-500/20 border border-red-500 text-red-200 p-3 rounded mb-6">
+                            {error}
+                        </div>
+                    )}
 
                     <div className="mb-6">
                         <div className="flex items-center justify-between bg-slate-700 p-3 rounded mb-2">
@@ -139,6 +145,12 @@ export function Lobby() {
             <div className="bg-slate-800 p-8 rounded-xl shadow-2xl max-w-md w-full text-center">
                 <h1 className="text-4xl font-bold mb-2 text-blue-400">CensEuchre</h1>
                 <p className="text-slate-400 mb-8">3D Multiplayer Euchre</p>
+
+                {error && (
+                    <div className="bg-red-500/20 border border-red-500 text-red-200 p-3 rounded mb-6">
+                        {error}
+                    </div>
+                )}
 
                 {!roomId && !joinRoomId ? (
                     <div className="space-y-4">
